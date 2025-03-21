@@ -56,13 +56,31 @@ def extract_news(company_name):
         data = response.json()
 
         articles = []
-        for item in data["articles"][:10]:  # Get 10 articles
+        sentiment_counts = {"Positive": 0, "Negative": 0, "Neutral": 0} 
+
+        for item in data["articles"][:10]:  
             article_url = item["url"]
-            article_content = fetch_article_content(article_url)  # Scrape the article page
+            article_content = fetch_article_content(article_url)  
             if article_content:
                 articles.append(article_content)
+                sentiment_counts[article_content["sentiment"]] += 1
 
-        return {"Company": company_name, "Articles": articles}
+        comparative_analysis = {
+            "Sentiment Distribution": sentiment_counts
+        }
+        if sentiment_counts["Positive"] > sentiment_counts["Negative"]:
+            final_analysis = f"{company_name}’s latest news coverage is mostly positive. Potential stock growth expected."
+        elif sentiment_counts["Negative"] > sentiment_counts["Positive"]:
+            final_analysis = f"{company_name}'s latest news coverage is mostly negative. Negative perception is dominant."
+        else:
+            final_analysis = f"Mixed coverage for {company_name}. Some positive and some negative."
+
+        return {
+            "Company": company_name,
+            "Articles": articles,
+            "Comparative Sentiment Score": comparative_analysis,
+            "Final Sentiment Analysis": final_analysis
+        }
 
     except Exception as e:
         print(f"Error fetching news for {company_name}: {e}")
