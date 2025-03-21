@@ -2,7 +2,23 @@ import requests
 from bs4 import BeautifulSoup
 import os 
 from summarise import summarise_text
+from nltk.sentiment import SentimentIntensityAnalyzer
+import nltk
+
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
+
+sia = SentimentIntensityAnalyzer()
+
+def analyze_sentiment(text):
+    """Analyzes the sentiment of a given text (summary) and returns Positive, Negative, or Neutral."""
+    sentiment_score = sia.polarity_scores(text)["compound"]  # Compound score
+
+    if sentiment_score >= 0.05:
+        return "Positive"
+    elif sentiment_score <= -0.05:
+        return "Negative"
+    else:
+        return "Neutral"
 
 def fetch_article_content(url):
     """Fetches the title and summary from a news article URL using BeautifulSoup."""
@@ -22,7 +38,9 @@ def fetch_article_content(url):
 
         summarized_text = summarise_text(full_text)
 
-        return {"title": title, "summary": summarized_text, "url": url}
+        sentiment = analyze_sentiment(summarized_text)
+
+        return {"title": title, "summary": summarized_text, "sentiment": sentiment, "url": url}
 
     except Exception as e:
         print(f"Error scraping {url}: {e}")
