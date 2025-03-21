@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import os 
-from summarise import summarise_text
+from summarise import summarise_text, extract_topics
 from nltk.sentiment import SentimentIntensityAnalyzer
 import nltk
 
@@ -37,10 +37,11 @@ def fetch_article_content(url):
         full_text = " ".join([p.get_text(strip=True) for p in paragraphs])
 
         summarized_text = summarise_text(full_text)
+        topics = extract_topics(summarized_text)
 
         sentiment = analyze_sentiment(summarized_text)
 
-        return {"title": title, "summary": summarized_text, "sentiment": sentiment, "url": url}
+        return {"title": title, "summary": summarized_text, "topics": topics, "sentiment": sentiment, "url": url}
 
     except Exception as e:
         print(f"Error scraping {url}: {e}")
@@ -65,6 +66,10 @@ def extract_news(company_name):
                 articles.append(article_content)
                 sentiment_counts[article_content["sentiment"]] += 1
 
+                ''' audio_filename = f"summary_{i}.mp3"
+                generate_hindi_audio(article_content["summary"], audio_filename)
+                article_content["audio"] = audio_filename '''
+
         comparative_analysis = {
             "Sentiment Distribution": sentiment_counts
         }
@@ -75,13 +80,42 @@ def extract_news(company_name):
         else:
             final_analysis = f"Mixed coverage for {company_name}. Some positive and some negative."
 
+        #final_audio_filename = "final_analysis.mp3"
+        #generate_hindi_audio(final_analysis, final_audio_filename)
+
         return {
             "Company": company_name,
             "Articles": articles,
             "Comparative Sentiment Score": comparative_analysis,
             "Final Sentiment Analysis": final_analysis
+            # "Audio": final_audio_filename 
         }
 
     except Exception as e:
         print(f"Error fetching news for {company_name}: {e}")
         return {"Company": company_name, "Articles": []}
+
+'''
+def generate_hindi_audio(text, filename="output.mp3"):
+    """Converts text to Hindi speech and saves it as an MP3 file."""
+    if text.strip():  # Ensure text is not empty
+        tts = gTTS(text=text, lang="hi")  # Convert text to Hindi speech
+        tts.save(filename)  # Save as an MP3 file
+        return filename
+    return None
+'''
+'''
+from gtts import gTTS
+from googletrans import Translator  # Import Google Translate API
+
+translator = Translator()  # Initialize Translator
+
+def generate_hindi_audio(text, filename="output.mp3"):
+    """Translates text to Hindi and converts it into Hindi speech."""
+    if text.strip():  # Ensure text is not empty
+        translated_text = translator.translate(text, dest="hi").text  # Translate to Hindi
+        tts = gTTS(text=translated_text, lang="hi")  # Convert translated text to Hindi speech
+        tts.save(filename)  # Save as an MP3 file
+        return filename
+    return None
+    '''
