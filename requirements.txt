@@ -1,8 +1,11 @@
-beautifulsoup4
-requests
-streamlit
-nltk
-transformers
-gtts
 fastapi
 uvicorn
+streamlit
+requests
+beautifulsoup4
+google-generativeai
+googletrans==4.0.0-rc1
+nltk
+spacy
+transformers
+gtts

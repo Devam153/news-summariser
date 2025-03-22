@@ -62,7 +62,7 @@ def extract_topics(text):
         max_output_tokens=8192,
         response_mime_type="text/plain",
         system_instruction=[
-            types.Part.from_text(text="Extract the 2-3 most important topics from this news. Give output as a simple comma-separated list."),
+            types.Part.from_text(text="I need you to extract the 2-3 most important topics from this news. Give output as a simple comma-separated list."),
         ],
     )
 
