@@ -8,7 +8,6 @@ company = st.text_input("Enter a company name to fetch news:")
 if st.button("Get News Summary"):
     if company.strip():
         with st.spinner("Fetching news..."):
-            # Call the API instead of running extract_news directly
             response = requests.get(f"http://127.0.0.1:8000/news/{company}")
             news_data = response.json()
 
@@ -25,8 +24,17 @@ if st.button("Get News Summary"):
                 if "audio" in article:
                     st.audio(article["audio"], format="audio/mp3")
 
+            # Display the comparative sentiment analysis in a nicer format
             st.subheader("📊 Comparative Sentiment Analysis")
-            st.write(news_data["Comparative Sentiment Score"])
+            sentiment_data = news_data["Comparative Sentiment Score"]["Sentiment Distribution"]
+            positive = sentiment_data.get("Positive", 0)
+            negative = sentiment_data.get("Negative", 0)
+            neutral = sentiment_data.get("Neutral", 0)
+
+            st.markdown("**Sentiment Distribution:**")
+            st.write(f"- **Positive:** {positive}")
+            st.write(f"- **Negative:** {negative}")
+            st.write(f"- **Neutral:** {neutral}")
 
             st.subheader("📢 Final Sentiment Summary")
             st.write(news_data["Final Sentiment Analysis"])

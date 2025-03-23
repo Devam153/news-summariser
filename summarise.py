@@ -14,7 +14,7 @@ def summarise_text(text):
         types.Content(
             role="user",
             parts=[
-                types.Part.from_text(text=text),  # Pass the actual text
+                types.Part.from_text(text=text), 
             ],
         ),
     ]
@@ -51,7 +51,7 @@ def extract_topics(text):
         types.Content(
             role="user",
             parts=[
-                types.Part.from_text(text=text),  # Pass the actual text
+                types.Part.from_text(text=text), 
             ],
         ),
     ]
