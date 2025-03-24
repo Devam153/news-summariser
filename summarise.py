@@ -25,7 +25,7 @@ def summarise_text(text):
         max_output_tokens=8192,
         response_mime_type="text/plain",
         system_instruction=[
-            types.Part.from_text(text="I will give you a text of text. I need you to summarise it. Keep it simple, and short and give output in a paragraph format"),
+            types.Part.from_text(text="I will give you a piece of text. I need you to summarise it. Keep it simple, and short and give output in a paragraph format"),
         ],
     )
 
