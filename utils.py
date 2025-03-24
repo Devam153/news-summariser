@@ -3,10 +3,10 @@ from bs4 import BeautifulSoup
 import os
 from summarise import summarise_text, extract_topics
 from nltk.sentiment import SentimentIntensityAnalyzer
-import nltk
 from gtts import gTTS
 from deep_translator import GoogleTranslator
 import base64
+
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
 def analyze_sentiment(text):
@@ -22,7 +22,6 @@ def analyze_sentiment(text):
         return "Negative"
     else:
         return "Neutral"
-
 
 def fetch_article_content(url):
     """
@@ -57,10 +56,10 @@ def fetch_article_content(url):
         print(f"Error scraping {url}: {e}")
         return None
 
-def generate_hindi_audio(text):
+def generate_hindi_audio(text): #Removed filename argument
     """
     Translates the given text to Hindi and converts it into Hindi speech.
-    The translated text is saved as an MP3 file.
+    Returns the base64 encoded audio data.
     """
     if text.strip():
         translated_text = GoogleTranslator(source="auto", target="hi").translate(text)
@@ -69,9 +68,8 @@ def generate_hindi_audio(text):
         with open("output.mp3", "rb") as audio_file:
             audio_base64 = base64.b64encode(audio_file.read()).decode('utf-8')
         os.remove("output.mp3")
-        return audio_base64
+        return audio_base64 #Return the base64 encoded audio
     return None
-
 
 def extract_news(company_name):
     """
@@ -88,16 +86,12 @@ def extract_news(company_name):
         articles = []
         sentiment_counts = {"Positive": 0, "Negative": 0, "Neutral": 0}
 
-        for i,item in enumerate(data["articles"][:10]):  
+        for i,item in enumerate(data["articles"][:10]): 
             article_url = item["url"]
-            article_content = fetch_article_content(article_url)  
+            article_content = fetch_article_content(article_url) 
             if article_content:
                 articles.append(article_content)
                 sentiment_counts[article_content["sentiment"]] += 1
-
-                '''audio_filename = f"summary_{i}.mp3"
-                generate_hindi_audio(article_content["summary"], audio_filename)
-                article_content["audio"] = audio_filename '''
 
         comparative_analysis = {
             "Sentiment Distribution": sentiment_counts
@@ -110,15 +104,14 @@ def extract_news(company_name):
         else:
             final_analysis = f"Mixed coverage for {company_name}. Some positive and some negative."
 
-        final_audio_filename = "final_analysis.mp3"
-        generate_hindi_audio(final_analysis, final_audio_filename)
+        final_audio_base64 = generate_hindi_audio(final_analysis) #Removed filename argument
 
         return {
             "Company": company_name,
             "Articles": articles,
             "Comparative Sentiment Score": comparative_analysis,
             "Final Sentiment Analysis": final_analysis,
-            "Audio": final_audio_filename
+            "Audio": final_audio_base64 #Return the base64 encoded audio
         }
 
     except Exception as e:

@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import base64
 
 st.title("📰 AI-Powered News Summarizer")
 
@@ -40,7 +41,11 @@ if st.button("Get News Summary"):
             st.write(news_data["Final Sentiment Analysis"])
 
             if "Audio" in news_data:
-                st.audio(news_data["Audio"], format="audio/mp3")
+                    try:
+                        audio_bytes = base64.b64decode(news_data["Audio"]) #Decode the base64 audio.
+                        st.audio(audio_bytes, format="audio/mp3")
+                    except base64.binascii.Error:
+                        st.error("Error decoding audio data.")
 
         else:
             st.warning("No articles found for this company.")
