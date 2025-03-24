@@ -56,7 +56,7 @@ def fetch_article_content(url):
         print(f"Error scraping {url}: {e}")
         return None
 
-def generate_hindi_audio(text): #Removed filename argument
+def generate_hindi_audio(text): 
     """
     Translates the given text to Hindi and converts it into Hindi speech.
     Returns the base64 encoded audio data.
@@ -68,7 +68,7 @@ def generate_hindi_audio(text): #Removed filename argument
         with open("output.mp3", "rb") as audio_file:
             audio_base64 = base64.b64encode(audio_file.read()).decode('utf-8')
         os.remove("output.mp3")
-        return audio_base64 #Return the base64 encoded audio
+        return audio_base64 
     return None
 
 def extract_news(company_name):
@@ -104,14 +104,14 @@ def extract_news(company_name):
         else:
             final_analysis = f"Mixed coverage for {company_name}. Some positive and some negative."
 
-        final_audio_base64 = generate_hindi_audio(final_analysis) #Removed filename argument
+        final_audio_base64 = generate_hindi_audio(final_analysis) 
 
         return {
             "Company": company_name,
             "Articles": articles,
             "Comparative Sentiment Score": comparative_analysis,
             "Final Sentiment Analysis": final_analysis,
-            "Audio": final_audio_base64 #Return the base64 encoded audio
+            "Audio": final_audio_base64 
         }
 
     except Exception as e:
