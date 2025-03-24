@@ -6,7 +6,7 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 import nltk
 from gtts import gTTS
 from deep_translator import GoogleTranslator
-
+import base64
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
 def analyze_sentiment(text):
@@ -57,8 +57,7 @@ def fetch_article_content(url):
         print(f"Error scraping {url}: {e}")
         return None
 
-
-def generate_hindi_audio(text, filename="output.mp3"):
+def generate_hindi_audio(text):
     """
     Translates the given text to Hindi and converts it into Hindi speech.
     The translated text is saved as an MP3 file.
@@ -66,8 +65,11 @@ def generate_hindi_audio(text, filename="output.mp3"):
     if text.strip():
         translated_text = GoogleTranslator(source="auto", target="hi").translate(text)
         tts = gTTS(text=translated_text, lang="hi")
-        tts.save(filename)
-        return filename
+        tts.save("output.mp3")
+        with open("output.mp3", "rb") as audio_file:
+            audio_base64 = base64.b64encode(audio_file.read()).decode('utf-8')
+        os.remove("output.mp3")
+        return audio_base64
     return None
 
 
