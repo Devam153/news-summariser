@@ -1,1 +1,3 @@
+News Summariser is an AI-powered tool designed to generate concise and accurate summaries of news articles. Built using FastAPI and Google Generative AI, it efficiently processes large amounts of text, extracting key information while preserving the original meaning. The application is ideal for users who want quick, digestible insights without reading entire articles. Whether you're keeping up with daily news or conducting research, News Summariser helps streamline information consumption by delivering essential points in a clear and structured format.
 
+Hugging face space link - https://huggingface.co/spaces/devam153/news-summariser
