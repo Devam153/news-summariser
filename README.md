@@ -3,7 +3,8 @@ News Summariser is an AI-powered tool designed to generate concise and accurate 
 Hugging face space link - https://huggingface.co/spaces/devam153/news-summariser
 
 So originally this used Google's Gemini API, but in Hugging Face Spaces I kept hitting rate limits and permission errors (turns out cloud APIs can be fussy about where they're called from).
-Tried using Transformers too, but Spaces got grumpy about cache paths (`/.cache permission denied, bruh).
+
+Tried using Transformers too, but Spaces got grumpy about cache paths (`/.cache permission denied).
 
 So now I'm keeping it simple with:
 
@@ -14,6 +15,7 @@ YAKE - For topic extraction that runs locally
 NLTK - Just the basics for text processing
 
 No external services = no rate limits 
+
 Might not be as smart as Gemini, but it always works!
 
 This Hugging Face Spaces version uses a simplified tech stack (Sumy + YAKE) to avoid cloud API limits and permission issues. 
