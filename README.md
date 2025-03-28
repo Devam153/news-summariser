@@ -17,4 +17,5 @@ No external services = no rate limits
 Might not be as smart as Gemini, but it always works!
 
 This Hugging Face Spaces version uses a simplified tech stack (Sumy + YAKE) to avoid cloud API limits and permission issues. 
+
 For the full-powered Gemini API version with FastAPI backend, check out the main GitHub repository - perfect for local development and more advanced use cases! 
