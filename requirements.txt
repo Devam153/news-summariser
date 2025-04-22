@@ -9,3 +9,5 @@ nltk
 spacy
 transformers
 gtts
+deep_translator
+python-dotenv
