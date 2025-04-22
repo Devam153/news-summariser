@@ -1,119 +1,88 @@
 import requests
 from bs4 import BeautifulSoup
+import json
 import os
+import time
 from summarise import summarise_text, extract_topics
-from nltk.sentiment import SentimentIntensityAnalyzer
-from gtts import gTTS
 from deep_translator import GoogleTranslator
-import base64
 
-NEWS_API_KEY = os.getenv("NEWS_API_KEY")
-
-def analyze_sentiment(text):
+def extract_news(company: str, num_articles: int = 5):
     """
-    Analyzes the sentiment of a given text (summary) and returns 
-    Positive, Negative, or Neutral based on the compound score.
+    Extracts news articles about a specific company from Google News.
+    
+    Args:
+        company: The company name to search for
+        num_articles: Number of articles to extract (default: 5)
+        
+    Returns:
+        List of dictionaries containing article information
     """
-    sia = SentimentIntensityAnalyzer()
-    sentiment_score = sia.polarity_scores(text)["compound"]
-    if sentiment_score >= 0.05:
-        return "Positive"
-    elif sentiment_score <= -0.05:
-        return "Negative"
-    else:
-        return "Neutral"
-
-def fetch_article_content(url):
-    """
-    Fetches the title and summary from a news article URL using BeautifulSoup.
-    Summarizes the full text via Gemini API, extracts key topics, and analyzes sentiment.
-    """
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    
+    url = f"https://news.google.com/search?q={company}&hl=en-US&gl=US&ceid=US:en"
+    
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, headers=headers)
         response.raise_for_status()
+        
         soup = BeautifulSoup(response.text, 'html.parser')
-
-        title_tag = soup.find('h1')
-        title = title_tag.get_text(strip=True) if title_tag else "No title found"
-
-        paragraphs = soup.find_all('p')
-        full_text = " ".join([p.get_text(strip=True) for p in paragraphs])
-
-        summarized_text = summarise_text(full_text)
-        topics = extract_topics(summarized_text)
-
-        sentiment = analyze_sentiment(summarized_text)
-
-        return {
-            "title": title,
-            "summary": summarized_text,
-            "topics": topics,
-            "sentiment": sentiment,
-            "url": url
-        }
-
+        articles = soup.find_all('article', class_='MQsxIb')
+        
+        news_data = []
+        for i, article in enumerate(articles[:num_articles]):
+            if i >= num_articles:
+                break
+                
+            # Extract title
+            title_tag = article.find('h3', class_='ipQwMb')
+            title = title_tag.text if title_tag else "No title found"
+            
+            # Extract URL
+            link_tag = article.find('a')
+            article_url = ""
+            if link_tag and 'href' in link_tag.attrs:
+                article_url = "https://news.google.com" + link_tag['href'][1:]
+                
+            # Extract source and time
+            source_time = article.find('div', class_='SVJrMe')
+            source = source_time.find('a').text if source_time and source_time.find('a') else "Unknown"
+            time = source_time.find('time').text if source_time and source_time.find('time') else "Unknown"
+            
+            # Extract snippet
+            snippet_tag = article.find('div', class_='GI74Re')
+            snippet = snippet_tag.text if snippet_tag else "No snippet available"
+            
+            # Get full article content
+            full_content = ""
+            try:
+                if article_url:
+                    article_response = requests.get(article_url, headers=headers, timeout=5)
+                    article_soup = BeautifulSoup(article_response.text, 'html.parser')
+                    paragraphs = article_soup.find_all('p')
+                    full_content = ' '.join([p.text for p in paragraphs])
+            except:
+                full_content = snippet
+            
+            # Summarize content
+            summary = summarise_text(full_content if full_content else snippet)
+            
+            # Extract topics
+            topics = extract_topics(full_content if full_content else snippet)
+            
+            news_data.append({
+                "title": title,
+                "source": source,
+                "time": time,
+                "snippet": snippet,
+                "url": article_url,
+                "summary": summary,
+                "topics": topics
+            })
+            
+        return news_data
+    
     except Exception as e:
-        print(f"Error scraping {url}: {e}")
-        return None
-
-def generate_hindi_audio(text): 
-    """
-    Translates the given text to Hindi and converts it into Hindi speech.
-    Returns the base64 encoded audio data.
-    """
-    if text.strip():
-        translated_text = GoogleTranslator(source="auto", target="hi").translate(text)
-        tts = gTTS(text=translated_text, lang="hi")
-        tts.save("output.mp3")
-        with open("output.mp3", "rb") as audio_file:
-            audio_base64 = base64.b64encode(audio_file.read()).decode('utf-8')
-        os.remove("output.mp3")
-        return audio_base64 
-    return None
-
-def extract_news(company_name):
-    """
-    Fetches 10 news articles using NewsAPI and scrapes their content.
-    Aggregates sentiment counts and generates a final overall sentiment analysis.
-    Generates a Hindi audio file for the final sentiment analysis.
-    """
-    url = f"https://newsapi.org/v2/everything?q={company_name}&apiKey={NEWS_API_KEY}"
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        data = response.json()
-
-        articles = []
-        sentiment_counts = {"Positive": 0, "Negative": 0, "Neutral": 0}
-
-        for i,item in enumerate(data["articles"][:10]): 
-            article_url = item["url"]
-            article_content = fetch_article_content(article_url) 
-            if article_content:
-                articles.append(article_content)
-                sentiment_counts[article_content["sentiment"]] += 1
-
-        comparative_analysis = {
-            "Sentiment Distribution": sentiment_counts
-        }
-
-        if sentiment_counts["Positive"] > sentiment_counts["Negative"]:
-            final_analysis = f"{company_name}’s latest news coverage is mostly positive. Potential stock growth expected."
-        elif sentiment_counts["Negative"] > sentiment_counts["Positive"]:
-            final_analysis = f"{company_name}'s latest news coverage is mostly negative. Negative perception is dominant."
-        else:
-            final_analysis = f"Mixed coverage for {company_name}. Some positive and some negative."
-
-        final_audio_base64 = generate_hindi_audio(final_analysis) 
-
-        return {
-            "Company": company_name,
-            "Articles": articles,
-            "Comparative Sentiment Score": comparative_analysis,
-            "Final Sentiment Analysis": final_analysis,
-            "Audio": final_audio_base64 
-        }
-
-    except Exception as e:
-        print(f"Error fetching news for {company_name}: {e}")
-        return {"Company": company_name, "Articles": []}
+        print(f"Error extracting news: {str(e)}")
+        return []
