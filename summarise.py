@@ -1,6 +1,6 @@
 import base64
 import os
-from google import genai
+import google.generativeai as genai
 from google.genai import types
 
 def summarise_text(text):
